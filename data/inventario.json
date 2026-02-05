@@ -1,0 +1,11 @@
+{
+  "productos": [
+    {
+      "id": "1770272366818",
+      "nombre": "Banano",
+      "categoria": "Frutas",
+      "unidad": "Unid",
+      "cantidad": 1
+    }
+  ]
+}

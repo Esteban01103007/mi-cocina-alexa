@@ -1,0 +1,17 @@
+{
+  "name": "control-cocina",
+  "version": "1.0.0",
+  "description": "Inventario para Echo Show",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.1"
+  },
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
