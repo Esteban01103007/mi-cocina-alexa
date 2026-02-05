@@ -5,6 +5,30 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+
+// --- CONFIGURACIÓN DE SEGURIDAD (Cámbialo aquí) ---
+const USUARIO_PROPIO = "admin"; 
+const CLAVE_PROPIA = "cocina2026"; // <--- CAMBIA ESTO POR TU CLAVE
+
+const authMiddleware = (req, res, next) => {
+    // Si la petición viene de Alexa, la dejamos pasar sin contraseña (ella usa su propio ID de Skill)
+    // Pero para la web (navegador), pedimos clave.
+    if (req.path === '/alexa') return next();
+
+    const auth = { login: USUARIO_PROPIO, password: CLAVE_PROPIA };
+    const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
+    const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
+
+    if (login && password && login === auth.login && password === auth.password) {
+        return next();
+    }
+
+    res.set('WWW-Authenticate', 'Basic realm="Acceso Privado - Mi Cocina"');
+    res.status(401).send('Acceso denegado. Se requiere usuario y contraseña.');
+};
+
+// Aplicamos la seguridad antes de servir los archivos y la API
+app.use(authMiddleware);
 app.use(express.static('public')); 
 
 const DATA_FOLDER = path.join(__dirname, 'data');
@@ -19,23 +43,31 @@ if (!fs.existsSync(DATA_FILE)) {
 }
 
 // --- RUTAS PARA LA WEB ---
+
+// 1. Leer inventario
 app.get('/api/inventario', (req, res) => {
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     res.json(data);
 });
 
+// 2. Agregar producto (POST)
 app.post('/api/inventario', (req, res) => {
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-    const nuevoProducto = { id: Date.now().toString(), ...req.body };
+    const nuevoProducto = {
+        id: Date.now().toString(),
+        ...req.body
+    };
     data.productos.push(nuevoProducto);
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
     res.json({ success: true, producto: nuevoProducto });
 });
 
+// 3. Editar producto (PUT)
 app.put('/api/inventario/:id', (req, res) => {
     const { id } = req.params;
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     const index = data.productos.findIndex(p => p.id === id);
+
     if (index !== -1) {
         data.productos[index] = { id, ...req.body };
         fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
@@ -45,13 +77,11 @@ app.put('/api/inventario/:id', (req, res) => {
     }
 });
 
-// --- RUTA PARA ALEXA (CORREGIDA PARA PANTALLA) ---
+// --- RUTA PARA ALEXA ---
 app.post('/alexa', (req, res) => {
-    const requestType = req.body.request.type;
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     const productos = data.productos;
-    const miWebUrl = "https://mi-cocina-alexa.onrender.com"; // Tu URL de Render
-
+    
     let mensaje = "";
     if (productos.length === 0) {
         mensaje = "Tu cocina está vacía.";
@@ -60,49 +90,13 @@ app.post('/alexa', (req, res) => {
         mensaje = `En tu inventario tienes: ${lista}`;
     }
 
-    // Si el usuario dice "Abre mi cocina", mostramos la web
-    if (requestType === 'LaunchRequest') {
-        res.json({
-            version: "1.0",
-            response: {
-                outputSpeech: { type: "PlainText", text: "Hola, abriendo tu inventario visual." },
-                directives: [
-                    {
-                        type: "Alexa.Presentation.APL.RenderDocument",
-                        version: "1.4",
-                        document: {
-                            type: "APL",
-                            version: "1.4",
-                            import: [{ name: "alexa-layouts", version: "1.2.0" }],
-                            mainTemplate: {
-                                items: [{
-                                    type: "Frame",
-                                    width: "100%",
-                                    height: "100%",
-                                    item: {
-                                        type: "Webview",
-                                        source: miWebUrl,
-                                        width: "100%",
-                                        height: "100%"
-                                    }
-                                }]
-                            }
-                        }
-                    }
-                ],
-                shouldEndSession: false
-            }
-        });
-    } else {
-        // Respuesta normal de voz si solo pregunta qué hay
-        res.json({
-            version: "1.0",
-            response: {
-                outputSpeech: { type: "PlainText", text: mensaje },
-                shouldEndSession: true
-            }
-        });
-    }
+    res.json({
+        version: "1.0",
+        response: {
+            outputSpeech: { type: "PlainText", text: mensaje },
+            shouldEndSession: true
+        }
+    });
 });
 
 app.listen(PORT, () => console.log(`Servidor encendido en puerto ${PORT}`));
