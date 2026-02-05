@@ -3,175 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cocina Inteligente | Inventario</title>
+    <title>Cocina Inteligente | Dashboard Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
         :root {
             --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --bg: #f8fafc;
-            --card-bg: rgba(255, 255, 255, 0.8);
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --border: #e2e8f0;
-            --radius: 16px;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
 
         body {
-            background: var(--bg);
-            background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%), 
-                              radial-gradient(at 100% 100%, rgba(34, 197, 94, 0.1) 0px, transparent 50%);
-            color: var(--text-main);
-            padding: 20px;
-            min-height: 100vh;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f8fafc;
+            background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%), 
+                              radial-gradient(at 100% 100%, rgba(34, 197, 94, 0.05) 0px, transparent 50%);
         }
 
-        .container { max-width: 1000px; margin: auto; }
-
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        h1 { font-size: 2rem; font-weight: 800; letter-spacing: -1px; margin: 0; color: var(--primary); }
-        .brand p { color: var(--text-muted); margin-top: 4px; }
-
-        .btn-main {
-            background: var(--primary); color: white; border: none; padding: 12px 24px;
-            border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s;
-            display: flex; align-items: center; gap: 8px;
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 1);
+            transition: transform 0.2s ease;
         }
-        .btn-main:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        
+        .glass-card:hover { transform: translateY(-2px); }
 
-        /* Dashboard Stats */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 20px; border-radius: var(--radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid var(--border); }
-        .stat-label { display: block; color: var(--text-muted); font-size: 0.875rem; font-weight: 500; }
-        .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
-        .stat-card.warning .stat-value { color: var(--warning); }
-        .stat-card.danger .stat-value { color: var(--danger); }
-
-        /* Table Style */
-        .card { background: var(--card-bg); backdrop-filter: blur(10px); border-radius: var(--radius); border: 1px solid white; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: rgba(0,0,0,0.02); padding: 16px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
-        td { padding: 16px; border-bottom: 1px solid var(--border); }
-
-        /* Badges */
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
-        .ok { background: #dcfce7; color: #15803d; }
-        .low { background: #fef3c7; color: #b45309; }
-        .out { background: #fee2e2; color: #b91c1c; }
-
-        .btn-edit { background: #e0e7ff; color: #4338ca; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-
-        /* Modal */
-        .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 15px; }
+        .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
         .modal.active { display: flex; }
-        .modal-content { background: white; width: 100%; max-width: 450px; padding: 30px; border-radius: 24px; }
-        .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
-        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
         
-        .input-group { margin-bottom: 15px; display: flex; flex-direction: column; }
-        .input-group label { font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; color: var(--text-muted); }
-        input { padding: 12px; border: 1px solid var(--border); border-radius: 10px; outline: none; }
-        input:focus { border-color: var(--primary); }
-        
-        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .btn-save { width: 100%; background: var(--primary); color: white; padding: 14px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; margin-top: 10px; }
-        
-        .empty { text-align: center; padding: 40px; color: var(--text-muted); font-style: italic; }
+        .badge-ok { background: #dcfce7; color: #15803d; }
+        .badge-low { background: #fef3c7; color: #b45309; }
+        .badge-out { background: #fee2e2; color: #b91c1c; }
     </style>
 </head>
-<body>
+<body class="p-4 md:p-8">
 
-<div class="container">
-    <header>
-        <div class="brand">
-            <h1>Mi Cocina</h1>
-            <p id="date-display"></p>
+<div class="max-w-6xl mx-auto">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <i data-lucide="utensils" class="text-indigo-600"></i>
+                <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Mi Cocina</h1>
+            </div>
+            <p id="date-display" class="text-slate-500 font-medium capitalize"></p>
         </div>
-        <button class="btn-main" onclick="openAdd()">
-            <span>➕</span> Agregar Alimento
+        <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-200 transition-all flex items-center gap-2" onclick="openAdd()">
+            <i data-lucide="plus-circle" size="20"></i> Agregar Alimento
         </button>
     </header>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <span class="stat-label">Productos</span>
-            <span class="stat-value" id="total-items">0</span>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="glass-card p-6 rounded-[24px] shadow-sm">
+            <div class="flex justify-between items-start mb-4">
+                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-2xl"><i data-lucide="box"></i></div>
+                <span class="text-2xl font-extrabold" id="total-items">0</span>
+            </div>
+            <p class="text-slate-500 text-sm font-semibold uppercase tracking-wider">Productos Totales</p>
         </div>
-        <div class="stat-card warning">
-            <span class="stat-label">Poco Stock</span>
-            <span class="stat-value" id="low-stock-items">0</span>
+
+        <div class="glass-card p-6 rounded-[24px] shadow-sm">
+            <div class="flex justify-between items-start mb-4">
+                <div class="p-3 bg-amber-50 text-amber-600 rounded-2xl"><i data-lucide="alert-circle"></i></div>
+                <span class="text-2xl font-extrabold text-amber-600" id="low-stock-items">0</span>
+            </div>
+            <p class="text-slate-500 text-sm font-semibold uppercase tracking-wider">Stock Crítico</p>
         </div>
-        <div class="stat-card danger">
-            <span class="stat-label">Agotados</span>
-            <span class="stat-value" id="out-of-stock-items">0</span>
+
+        <div class="glass-card p-6 rounded-[24px] shadow-sm">
+            <div class="flex justify-between items-start mb-4">
+                <div class="p-3 bg-rose-50 text-rose-600 rounded-2xl"><i data-lucide="x-circle"></i></div>
+                <span class="text-2xl font-extrabold text-rose-600" id="out-of-stock-items">0</span>
+            </div>
+            <p class="text-slate-500 text-sm font-semibold uppercase tracking-wider">Agotados</p>
         </div>
     </div>
 
-    <div class="card">
-        <table>
-            <thead>
-                <tr>
-                    <th>Producto</th>
-                    <th>Categoría</th>
-                    <th>Cantidad</th>
-                    <th>Estado</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                <tr id="emptyRow">
-                    <td colspan="5" class="empty">Conectando con la despensa...</td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+        <div class="glass-card p-8 rounded-[32px] shadow-sm">
+            <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+                <i data-lucide="pie-chart" size="18" class="text-indigo-500"></i> Distribución por Categoría
+            </h3>
+            <div class="h-[250px] flex justify-center">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+        <div class="glass-card p-8 rounded-[32px] shadow-sm">
+            <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+                <i data-lucide="bar-chart-3" size="18" class="text-indigo-500"></i> Niveles de Inventario
+            </h3>
+            <div class="h-[250px]">
+                <canvas id="stockChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card rounded-[32px] shadow-sm overflow-hidden mb-10">
+        <div class="p-6 border-b border-slate-100 bg-white/50 flex justify-between items-center">
+            <h3 class="font-bold text-slate-800">Detalle de Productos</h3>
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size="16"></i>
+                <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Buscar producto..." class="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-64">
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-100 w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-slate-400 text-[11px] uppercase tracking-widest bg-slate-50/50">
+                        <th class="px-8 py-4 font-bold">Alimento</th>
+                        <th class="px-8 py-4 font-bold">Categoría</th>
+                        <th class="px-8 py-4 font-bold text-center">Cantidad</th>
+                        <th class="px-8 py-4 font-bold">Estado</th>
+                        <th class="px-8 py-4 font-bold text-right">Gestión</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody" class="text-slate-700 divide-y divide-slate-50">
+                    </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <div class="modal" id="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="modalTitle">Nuevo Alimento</h2>
-            <button class="close-btn" onclick="closeModal()">×</button>
+    <div class="bg-white w-full max-w-md p-8 rounded-[32px] shadow-2xl m-4">
+        <div class="flex justify-between items-center mb-8">
+            <h2 id="modalTitle" class="text-2xl font-extrabold text-slate-800">Nuevo Alimento</h2>
+            <button onclick="closeModal()" class="p-2 hover:bg-slate-100 rounded-full transition"><i data-lucide="x" class="text-slate-400"></i></button>
         </div>
-        <form id="productForm" onsubmit="saveProduct(event)">
-            <div class="input-group">
-                <label>Nombre del Alimento</label>
-                <input type="text" id="name" placeholder="Ej. Huevos" required>
+        <form id="productForm" onsubmit="saveProduct(event)" class="space-y-5">
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-slate-500 uppercase ml-1">Nombre</label>
+                <input type="text" id="name" placeholder="Ej. Leche Entera" required class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none">
             </div>
-            <div class="input-row">
-                <div class="input-group">
-                    <label>Categoría</label>
-                    <input type="text" id="category" placeholder="Frutas, Carnes..." required>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">Categoría</label>
+                    <input type="text" id="category" placeholder="Lácteos" required class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
-                <div class="input-group">
-                    <label>Unidad</label>
-                    <input type="text" id="unit" placeholder="Kg, Unid, Litros" required>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">Unidad</label>
+                    <input type="text" id="unit" placeholder="Litros" required class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
             </div>
-            <div class="input-group">
-                <label>Cantidad</label>
-                <input type="number" id="quantity" value="1" min="0" required>
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-slate-500 uppercase ml-1">Cantidad Actual</label>
+                <input type="number" id="quantity" value="1" min="0" required class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-xl font-bold">
             </div>
-            <button type="submit" id="saveBtn" class="btn-save">Guardar en Inventario</button>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-indigo-100 transition-all mt-4">
+                Confirmar Cambios
+            </button>
         </form>
     </div>
 </div>
 
 <script>
     let editingId = null;
+    let categoryChart, stockChart;
     const modal = document.getElementById("modal");
     const tableBody = document.getElementById("tableBody");
     const productForm = document.getElementById("productForm");
 
-    // Mostrar fecha actual
+    // Inicializar Lucide Icons
+    lucide.createIcons();
+
     document.getElementById('date-display').textContent = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
 
-    // Cargar productos al iniciar
     window.onload = loadProducts;
 
     async function loadProducts() {
@@ -180,9 +178,9 @@
             const data = await res.json();
             renderTable(data.productos);
             updateStats(data.productos);
+            initCharts(data.productos);
         } catch (err) {
-            console.error("Error:", err);
-            tableBody.innerHTML = '<tr><td colspan="5" class="empty">Error al conectar. ¿Iniciaste el servidor con node server.js?</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-slate-400">Error de conexión con el servidor.</td></tr>';
         }
     }
 
@@ -192,20 +190,62 @@
         document.getElementById('out-of-stock-items').textContent = productos.filter(p => p.cantidad == 0).length;
     }
 
+    function initCharts(productos) {
+        const ctxCat = document.getElementById('categoryChart').getContext('2d');
+        const ctxStock = document.getElementById('stockChart').getContext('2d');
+
+        // Lógica de Categorías
+        const catMap = {};
+        productos.forEach(p => catMap[p.categoria] = (catMap[p.categoria] || 0) + 1);
+
+        if (categoryChart) categoryChart.destroy();
+        categoryChart = new Chart(ctxCat, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(catMap),
+                datasets: [{
+                    data: Object.values(catMap),
+                    backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
+                    borderWidth: 0,
+                    hoverOffset: 20
+                }]
+            },
+            options: { cutout: '70%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } } }
+        });
+
+        // Lógica de Stock (Top 5)
+        const sortedItems = [...productos].sort((a,b) => b.cantidad - a.cantidad).slice(0, 5);
+        if (stockChart) stockChart.destroy();
+        stockChart = new Chart(ctxStock, {
+            type: 'bar',
+            data: {
+                labels: sortedItems.map(p => p.nombre),
+                datasets: [{
+                    label: 'Cantidad',
+                    data: sortedItems.map(p => p.cantidad),
+                    backgroundColor: '#6366f1',
+                    borderRadius: 12,
+                    barThickness: 30
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+        });
+    }
+
     function renderTable(productos) {
         if (productos.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" class="empty">No hay nada en la cocina. ¡Agrega tu primer producto!</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5" class="p-20 text-center text-slate-400 font-medium">No hay alimentos registrados.</td></tr>';
             return;
         }
         tableBody.innerHTML = productos.map(p => {
             const [status, cls] = getStatus(p.cantidad);
             return `
-                <tr>
-                    <td><strong>${p.nombre}</strong></td>
-                    <td>${p.categoria}</td>
-                    <td>${p.cantidad} <small>${p.unidad}</small></td>
-                    <td><span class="badge ${cls}">${status}</span></td>
-                    <td><button class="btn-edit" onclick="openEdit('${p.id}')">Editar</button></td>
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="px-8 py-5 font-bold text-slate-800">${p.nombre}</td>
+                    <td class="px-8 py-5 text-sm text-slate-500 font-medium">${p.categoria}</td>
+                    <td class="px-8 py-5 text-center font-bold text-slate-600">${p.cantidad} <span class="text-[10px] text-slate-400 uppercase tracking-tighter ml-1">${p.unit || p.unidad}</span></td>
+                    <td class="px-8 py-5"><span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest badge-${cls}">${status}</span></td>
+                    <td class="px-8 py-5 text-right"><button class="bg-white border border-slate-200 text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm" onclick="openEdit('${p.id}')">Editar</button></td>
                 </tr>
             `;
         }).join('');
@@ -215,6 +255,14 @@
         if (qty == 0) return ["Agotado", "out"];
         if (qty < 5) return ["Poco stock", "low"];
         return ["Disponible", "ok"];
+    }
+
+    function filterTable() {
+        const val = document.getElementById("searchInput").value.toLowerCase();
+        const rows = tableBody.getElementsByTagName("tr");
+        for (let row of rows) {
+            row.style.display = row.innerText.toLowerCase().includes(val) ? "" : "none";
+        }
     }
 
     function openAdd() {
@@ -229,12 +277,10 @@
         const res = await fetch('/api/inventario');
         const data = await res.json();
         const p = data.productos.find(item => item.id === id);
-        
         document.getElementById("name").value = p.nombre;
         document.getElementById("category").value = p.categoria;
-        document.getElementById("unit").value = p.unidad;
+        document.getElementById("unit").value = p.unidad || p.unit;
         document.getElementById("quantity").value = p.cantidad;
-        
         document.getElementById("modalTitle").textContent = "Editar Alimento";
         modal.classList.add("active");
     }
@@ -247,16 +293,9 @@
             unidad: document.getElementById("unit").value,
             cantidad: parseInt(document.getElementById("quantity").value)
         };
-
         const method = editingId ? 'PUT' : 'POST';
         const url = editingId ? `/api/inventario/${editingId}` : '/api/inventario';
-
-        await fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(prodData)
-        });
-
+        await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(prodData) });
         closeModal();
         loadProducts();
     }
