@@ -1,17 +1,13 @@
 {
-  "name": "control-cocina",
+  "name": "mi-cocina-alexa",
   "version": "1.0.0",
-  "description": "Inventario para Echo Show",
+  "description": "",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.22.1"
-  },
-  "devDependencies": {},
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+    "express": "^4.18.2",
+    "express-session": "^1.17.3"
+  }
 }
